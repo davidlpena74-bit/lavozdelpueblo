@@ -17,9 +17,9 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkLabels() {
-    console.log('Checking custom labels in topics...');
+    console.log('Checking custom labels in topics_with_stats view...');
     const { data: topics, error } = await supabase
-        .from('topics')
+        .from('topics_with_stats')
         .select('title, label_support, label_oppose')
         .limit(5);
 

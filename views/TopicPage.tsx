@@ -145,7 +145,7 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
                 <div className="h-3 w-10 bg-red-500 rounded-full"></div>
               </div>
             </div>
-            <SpainMap regionalVotes={topic.regionalVotes} />
+            <SpainMap regionalVotes={topic.regionalVotes} labelSupport={topic.labelSupport} labelOppose={topic.labelOppose} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

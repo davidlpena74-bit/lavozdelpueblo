@@ -4,6 +4,8 @@ import { RegionalVotes, RegionCode } from '../types';
 
 interface SpainMapProps {
   regionalVotes: RegionalVotes;
+  labelSupport?: string;
+  labelOppose?: string;
 }
 
 const REGION_DATA: Record<RegionCode, { name: string; path: string }> = {
@@ -28,40 +30,56 @@ const REGION_DATA: Record<RegionCode, { name: string; path: string }> = {
   'ML': { name: 'Melilla', path: 'M440,780h20v20h-20V780z' }
 };
 
-const SpainMap: React.FC<SpainMapProps> = ({ regionalVotes }) => {
+const SpainMap: React.FC<SpainMapProps> = ({ regionalVotes, labelSupport = 'A favor', labelOppose = 'En contra' }) => {
   const getRegionColor = (code: RegionCode) => {
     const votes = regionalVotes[code];
-    if (!votes || (votes.support === 0 && votes.oppose === 0)) return '#f1f5f9'; // Gris muy claro (slate-100)
-    
-    const total = votes.support + votes.oppose;
-    const supportRatio = votes.support / total;
-    const opposeRatio = votes.oppose / total;
+    if (!votes || (votes.support === 0 && votes.oppose === 0 && votes.neutral === 0)) return '#e2e8f0'; // Gris base (slate-200)
 
-    if (votes.support > votes.oppose) {
-      // Escala de verdes: de pálido a intenso según el porcentaje de victoria
-      const intensity = Math.min(Math.max((supportRatio - 0.5) * 2, 0.1), 1);
-      return `rgba(34, 197, 94, ${0.2 + intensity * 0.8})`; 
-    } else if (votes.oppose > votes.support) {
-      // Escala de rojos
-      const intensity = Math.min(Math.max((opposeRatio - 0.5) * 2, 0.1), 1);
-      return `rgba(239, 68, 68, ${0.2 + intensity * 0.8})`;
+    // Find the winner
+    const { support, oppose, neutral } = votes;
+    const max = Math.max(support, oppose, neutral);
+
+    if (max === 0) return '#e2e8f0';
+
+    if (support === max && support > oppose && support > neutral) {
+      // Winner: Option A (Green)
+      // Opacity based on dominance? Let's just give a solid nice green for clear visibility as requested
+      return '#22c55e'; // green-500
+    } else if (oppose === max && oppose > support && oppose > neutral) {
+      // Winner: Option B (Red)
+      return '#ef4444'; // red-500
+    } else {
+      // Winner: Neutral or Tie (Gray)
+      return '#94a3b8'; // slate-400
     }
-    return '#94a3b8'; // Neutral (slate-400)
   };
 
   return (
-    <div className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-200 shadow-inner">
-      <div className="flex flex-wrap justify-center mb-6 gap-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-        <div className="flex items-center"><span className="w-4 h-4 bg-green-500 rounded mr-2 border border-green-600"></span> Mayoría A Favor</div>
-        <div className="flex items-center"><span className="w-4 h-4 bg-red-500 rounded mr-2 border border-red-600"></span> Mayoría En Contra</div>
-        <div className="flex items-center"><span className="w-4 h-4 bg-slate-200 rounded mr-2 border border-slate-300"></span> Sin Datos</div>
+    <div className="w-full bg-white rounded-2xl p-6 border border-gray-100 shadow-lg">
+      <div className="flex flex-wrap justify-center mb-8 gap-6 text-xs font-bold uppercase tracking-wider text-gray-500">
+        <div className="flex items-center">
+          <span className="w-3 h-3 bg-green-500 rounded-full mr-2 shadow-sm"></span>
+          {labelSupport}
+        </div>
+        <div className="flex items-center">
+          <span className="w-3 h-3 bg-red-500 rounded-full mr-2 shadow-sm"></span>
+          {labelOppose}
+        </div>
+        <div className="flex items-center">
+          <span className="w-3 h-3 bg-slate-400 rounded-full mr-2 shadow-sm"></span>
+          Neutral / Empate
+        </div>
+        <div className="flex items-center">
+          <span className="w-3 h-3 bg-slate-200 rounded-full mr-2 shadow-sm"></span>
+          Sin Datos
+        </div>
       </div>
-      
-      <div className="relative group">
-        <svg viewBox="0 0 1000 850" className="w-full h-auto filter drop-shadow-md">
+
+      <div className="relative group mx-auto max-w-2xl">
+        <svg viewBox="0 0 1000 850" className="w-full h-auto filter drop-shadow-lg transform transition-all hover:scale-[1.01]">
           {/* Recuadro para Canarias */}
-          <rect x="20" y="680" width="220" height="150" fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="5,5" />
-          
+          <rect x="20" y="680" width="220" height="150" fill="none" stroke="#e2e8f0" strokeWidth="2" rx="10" />
+
           <g id="spain-detailed-map">
             {(Object.entries(REGION_DATA) as [RegionCode, { name: string; path: string }][]).map(([code, data]) => (
               <path
@@ -69,30 +87,17 @@ const SpainMap: React.FC<SpainMapProps> = ({ regionalVotes }) => {
                 d={data.path}
                 fill={getRegionColor(code)}
                 stroke="#ffffff"
-                strokeWidth="2"
-                className="transition-all duration-300 hover:brightness-95 hover:stroke-indigo-400 cursor-pointer"
+                strokeWidth="1.5"
+                className="transition-all duration-300 hover:opacity-80 cursor-pointer focus:outline-none"
               >
-                <title>{data.name}: {regionalVotes[code]?.support || 0} A favor / {regionalVotes[code]?.oppose || 0} En contra</title>
+                <title>{data.name}:&#10;{labelSupport}: {regionalVotes[code]?.support || 0}&#10;{labelOppose}: {regionalVotes[code]?.oppose || 0}&#10;Neutral: {regionalVotes[code]?.neutral || 0}</title>
               </path>
             ))}
           </g>
-          
+
           {/* Etiquetas decorativas */}
-          <text x="130" y="815" fontSize="14" fill="#94a3b8" textAnchor="middle" fontWeight="bold">Canarias</text>
+          <text x="130" y="815" fontSize="14" fill="#cbd5e1" textAnchor="middle" fontWeight="bold" fontFamily="sans-serif">Canarias</text>
         </svg>
-        
-        {/* Leyenda de intensidad flotante */}
-        <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm p-3 rounded-xl border border-slate-200 text-[10px] shadow-sm">
-          <p className="font-bold text-slate-700 mb-2 text-center">Intensidad del Voto</p>
-          <div className="flex items-center space-x-1">
-            <div className="w-full h-2 rounded bg-gradient-to-r from-red-500 via-slate-200 to-green-500"></div>
-          </div>
-          <div className="flex justify-between mt-1 text-slate-400">
-            <span>Contra</span>
-            <span>Empate</span>
-            <span>Favor</span>
-          </div>
-        </div>
       </div>
     </div>
   );
