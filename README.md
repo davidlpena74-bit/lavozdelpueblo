@@ -1,44 +1,48 @@
-
 # 🏛️ LaVozDelPueblo.es
 
 Plataforma de participación ciudadana impulsada por Inteligencia Artificial donde los ciudadanos pueden explorar, votar y analizar temas de actualidad política con una visión equilibrada.
 
-## 🚀 Cómo empezar
+## 📂 Estructura del Proyecto
 
-### 1. Clonar y ejecutar localmente
-1. Clona este repositorio.
-2. Ejecuta `npm install` para instalar las dependencias.
-3. Crea un archivo `.env` en la raíz y añade tu clave de Gemini:
-   ```env
-   VITE_GEMINI_API_KEY=tu_clave_aqui
-   ```
-4. Ejecuta `npm run dev` para iniciar el servidor local.
+Para trabajar de forma organizada, definimos los siguientes entornos:
 
-### 2. Cómo publicar en GitHub (Pasos)
-1. Crea un nuevo repositorio en tu cuenta de GitHub llamado `lavozdelpueblo`.
-2. Abre una terminal en la carpeta de tu proyecto.
-3. Ejecuta los siguientes comandos:
-   ```bash
-   git init
-   git add .
-   git commit -m "Primer despliegue de La Voz Del Pueblo"
-   git branch -M main
-   git remote add origin https://github.com/TU_USUARIO/lavozdelpueblo.git
-   git push -u origin main
-   ```
+| Nombre | Descripción | Ubicación / URL | Comando clave |
+| :--- | :--- | :--- | :--- |
+| **Entorno Local** (Taller) | Donde desarrollamos y probamos cambios. | Tu ordenador (`.../azure-cluster`) | `npm run dev` |
+| **Repositorio Remoto** (Almacén) | Copia de seguridad y colaboración. | [GitHub: davidlpena74-bit/lavozdelpueblo](https://github.com/davidlpena74-bit/lavozdelpueblo) | `git push` |
+| **Producción** (Escaparate) | La web real que ven los usuarios. | [lavozdelpueblo.es](https://lavozdelpueblo.es) | `npm run deploy` |
 
-## 🌐 Despliegue con Vercel
-1. Ve a [Vercel.com](https://vercel.com) e inicia sesión con tu GitHub.
-2. Haz clic en **"New Project"**.
-3. Importa tu repositorio `lavozdelpueblo`.
-4. En **Environment Variables**, añade:
-   - `API_KEY`: Tu clave de Google AI Studio.
-5. Haz clic en **"Deploy"**.
+## 🚀 Cómo trabajar
 
-## 🔑 Configuración de Auth (Importante)
-Para que el login de Google y Facebook funcione en tu web publicada:
-- **Google Cloud Console:** Añade la URL de tu web de Vercel a "Orígenes de JavaScript autorizados".
-- **Facebook Developers:** Añade la URL de tu web a "Configuración de inicio de sesión de Facebook".
+### 1. Desarrollo Local
+1. Abre la terminal en la carpeta del proyecto.
+2. Ejecuta `npm run dev`.
+3. Abre `http://localhost:5173` en tu navegador.
+4. Haz tus cambios en el código.
+
+### 2. Guardar cambios (GitHub)
+```bash
+git add .
+git commit -m "Descripción de los cambios"
+git push
+```
+
+### 3. Publicar en lavozdelpueblo.es
+```bash
+npm run deploy
+```
+*Esto construirá la aplicación y la subirá automáticamente a GitHub Pages.*
+
+## 🔑 Configuración
+
+### Variables de Entorno
+Crea un archivo `.env` en la raíz si necesitas configurar claves API:
+```env
+VITE_GEMINI_API_KEY=tu_clave_aqui
+```
+
+### DNS (DonDominio)
+Para que el dominio funcione, asegúrate de usar los **DNS de DonDominio** y añadir los registros A y CNAME indicados en el plan de despliegue.
 
 ---
-*Desarrollado con React y Google Gemini API.*
+*Desarrollado con React, Vite y Google Gemini API.*

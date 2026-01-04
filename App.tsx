@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { supabase } from './src/services/supabase';
 import Dashboard from './views/Dashboard';
 import TopicPage from './views/TopicPage';
 import NewTopic from './views/NewTopic';
@@ -71,22 +72,22 @@ const Navigation: React.FC<{ user: any; onLogin: () => void; onLogout: () => voi
             <Link to="/new" className={`${isActive('/new') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>Proponer Tema</Link>
           </div>
           <div className="flex items-center space-x-4">
-             {user ? (
-               <div className="flex items-center space-x-3 bg-gray-50 pr-1 pl-3 py-1 rounded-full border border-gray-200">
-                 <span className="text-xs font-bold text-gray-700">{user.name}</span>
-                 <img src={user.avatar} className="w-8 h-8 rounded-full border border-white shadow-sm" alt="User" />
-                 <button onClick={onLogout} className="p-1.5 text-gray-400 hover:text-red-500 transition">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                 </button>
-               </div>
-             ) : (
-               <button 
+            {user ? (
+              <div className="flex items-center space-x-3 bg-gray-50 pr-1 pl-3 py-1 rounded-full border border-gray-200">
+                <span className="text-xs font-bold text-gray-700">{user.name}</span>
+                <img src={user.avatar} className="w-8 h-8 rounded-full border border-white shadow-sm" alt="User" />
+                <button onClick={onLogout} className="p-1.5 text-gray-400 hover:text-red-500 transition">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                </button>
+              </div>
+            ) : (
+              <button
                 onClick={onLogin}
                 className="bg-indigo-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition active:scale-95"
-               >
+              >
                 Iniciar Sesión
-               </button>
-             )}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -99,13 +100,43 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('politipoll_topics_v2');
     return saved ? JSON.parse(saved) : INITIAL_TOPICS;
   });
-  
+
   const [user, setUser] = useState<{ name: string; avatar: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // ... imports
 
   useEffect(() => {
     localStorage.setItem('politipoll_topics_v2', JSON.stringify(topics));
   }, [topics]);
+
+  useEffect(() => {
+    // 1. Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          name: session.user.email?.split('@')[0] || 'Ciudadano',
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.email}`
+        });
+      }
+    });
+
+    // 2. Listen for changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          name: session.user.email?.split('@')[0] || 'Ciudadano',
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.email}`
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleAddTopic = (newTopic: Topic) => {
     setTopics(prev => [newTopic, ...prev]);
@@ -139,10 +170,13 @@ const App: React.FC = () => {
   return (
     <HashRouter>
       <div className="min-h-screen flex flex-col">
-        <Navigation 
-          user={user} 
-          onLogin={() => setIsAuthModalOpen(true)} 
-          onLogout={() => setUser(null)} 
+        <Navigation
+          user={user}
+          onLogin={() => setIsAuthModalOpen(true)}
+          onLogout={async () => {
+            await supabase.auth.signOut();
+            setUser(null);
+          }}
         />
         <main className="flex-grow">
           <Routes>
@@ -151,11 +185,11 @@ const App: React.FC = () => {
             <Route path="/new" element={<NewTopic onAddTopic={handleAddTopic} />} />
           </Routes>
         </main>
-        
-        <AuthModal 
-          isOpen={isAuthModalOpen} 
-          onClose={() => setIsAuthModalOpen(false)} 
-          onLoginSuccess={(userData) => setUser(userData)} 
+
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLoginSuccess={(userData) => setUser(userData)}
         />
 
         <footer className="bg-white border-t border-gray-200 py-12 mt-12">
