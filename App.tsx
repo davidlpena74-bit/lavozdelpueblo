@@ -112,7 +112,7 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : INITIAL_TOPICS;
   });
 
-  const [user, setUser] = useState<{ id: string; name: string; avatar: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; avatar: string; email: string; region?: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
 
@@ -134,14 +134,7 @@ const App: React.FC = () => {
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        // Prioritize username from metadata, fallback to email
-        const username = session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Ciudadano';
-        setUser({
-          id: session.user.id,
-          name: username,
-          email: session.user.email || '',
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
-        });
+        fetchUserProfile(session.user);
       }
     });
 
@@ -150,13 +143,7 @@ const App: React.FC = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        const username = session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Ciudadano';
-        setUser({
-          id: session.user.id,
-          name: username,
-          email: session.user.email || '',
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
-        });
+        fetchUserProfile(session.user);
       } else {
         setUser(null);
       }
@@ -166,6 +153,25 @@ const App: React.FC = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const fetchUserProfile = async (sessionUser: any) => {
+    const username = sessionUser.user_metadata?.username || sessionUser.email?.split('@')[0] || 'Ciudadano';
+
+    // Fetch extended profile data (region)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('region')
+      .eq('id', sessionUser.id)
+      .single();
+
+    setUser({
+      id: sessionUser.id,
+      name: username,
+      email: sessionUser.email || '',
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      region: profile?.region || sessionUser.user_metadata?.region // Fallback to metadata if DB fetch fails or is pending
+    });
+  };
 
   const handleAddTopic = async (newTopic: Topic) => {
     try {

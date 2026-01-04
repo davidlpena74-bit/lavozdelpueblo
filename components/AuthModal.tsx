@@ -15,6 +15,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [region, setRegion] = useState('');
   const [sent, setSent] = useState(false);
 
   const handleMagicLinkLogin = async (e: React.FormEvent) => {
@@ -60,6 +61,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         options: {
           data: {
             username: username,
+            region: region,
           }
         }
       });
@@ -151,10 +153,42 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               {mode === 'signup' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Nombre de Usuario</label>
-                  <input type="text" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="usuario_unico" value={username} onChange={(e) => setUsername(e.target.value)} />
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Nombre de Usuario</label>
+                    <input type="text" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="usuario_unico" value={username} onChange={(e) => setUsername(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Comunidad Autónoma</label>
+                    <select
+                      required
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                    >
+                      <option value="">Selecciona tu región...</option>
+                      <option value="AN">Andalucía</option>
+                      <option value="AR">Aragón</option>
+                      <option value="AS">Asturias</option>
+                      <option value="IB">Baleares</option>
+                      <option value="CN">Canarias</option>
+                      <option value="CB">Cantabria</option>
+                      <option value="CM">Castilla-La Mancha</option>
+                      <option value="CL">Castilla y León</option>
+                      <option value="CT">Cataluña</option>
+                      <option value="CE">Ceuta</option>
+                      <option value="VC">Comunidad Valenciana</option>
+                      <option value="EX">Extremadura</option>
+                      <option value="GA">Galicia</option>
+                      <option value="RI">La Rioja</option>
+                      <option value="MD">Madrid</option>
+                      <option value="ML">Melilla</option>
+                      <option value="MC">Murcia</option>
+                      <option value="NC">Navarra</option>
+                      <option value="PV">País Vasco</option>
+                    </select>
+                  </div>
+                </>
               )}
 
               <div>
