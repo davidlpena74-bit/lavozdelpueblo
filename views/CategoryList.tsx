@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../src/services/api';
 
 const CATEGORIES = [
     { id: 'Política', name: 'Política', icon: '⚖️', description: 'Debates sobre gobierno, leyes y derechos.' },
@@ -12,12 +13,23 @@ const CATEGORIES = [
 ];
 
 const CategoryList: React.FC = () => {
+    const [userCount, setUserCount] = useState<number | null>(null);
+
+    useEffect(() => {
+        api.fetchUserCount().then(count => setUserCount(count));
+    }, []);
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="text-center mb-16">
                 <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
                     Elige tu Campo de Batalla
                 </h1>
+                {userCount !== null && (
+                    <p className="mt-2 text-sm text-indigo-600 font-medium">
+                        Ya somos {userCount} ciudadanos registrados
+                    </p>
+                )}
                 <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">
                     Selecciona una categoría para explorar los debates activos y haz oír tu voz.
                 </p>

@@ -106,4 +106,13 @@ export const api = {
         if (error) throw error;
         return true;
     },
+    // Get total user count
+    async fetchUserCount() {
+        const { count, error } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true });
+
+        if (error) throw error;
+        return count || 0;
+    },
 };
