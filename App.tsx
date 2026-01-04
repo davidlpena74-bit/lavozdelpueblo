@@ -10,6 +10,8 @@ import AuthModal from './components/AuthModal';
 import { Topic, RegionCode } from './types';
 import UserProfile from './views/UserProfile';
 import UserVotes from './views/UserVotes';
+import CategoryList from './views/CategoryList';
+import CategoryDashboard from './views/CategoryDashboard';
 
 const REGIONS: RegionCode[] = ['AN', 'AR', 'AS', 'IB', 'CN', 'CB', 'CM', 'CL', 'CT', 'VC', 'EX', 'GA', 'MD', 'MC', 'NC', 'PV', 'RI', 'CE', 'ML'];
 
@@ -202,7 +204,9 @@ const App: React.FC = () => {
         />
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<Dashboard topics={topics} />} />
+            <Route path="/" element={<CategoryList />} />
+            <Route path="/latest" element={<Dashboard topics={topics} />} />
+            <Route path="/category/:categoryId" element={<CategoryDashboard topics={topics} />} />
             <Route path="/topic/:id" element={<TopicPage topics={topics} onVote={handleVote} user={user} onRequireAuth={() => setIsAuthModalOpen(true)} />} />
             <Route path="/new" element={<NewTopic onAddTopic={handleAddTopic} />} />
             {user && (

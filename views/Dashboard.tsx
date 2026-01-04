@@ -5,9 +5,11 @@ import TopicCard from '../components/TopicCard';
 
 interface DashboardProps {
   topics: Topic[];
+  title?: string;
+  showFilters?: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ topics }) => {
+const Dashboard: React.FC<DashboardProps> = ({ topics, title = "Temas en Tendencia", showFilters = true }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <header className="mb-12 text-center">
@@ -20,14 +22,16 @@ const Dashboard: React.FC<DashboardProps> = ({ topics }) => {
       </header>
 
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
-        <h2 className="text-2xl font-bold text-gray-900">Temas en Tendencia</h2>
-        <div className="flex flex-wrap gap-2">
-          {['Todos', 'Economía', 'Medio Ambiente', 'Social', 'Legal'].map(cat => (
-            <button key={cat} className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-100 transition border border-gray-200">
-              {cat}
-            </button>
-          ))}
-        </div>
+        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+        {showFilters && (
+          <div className="flex flex-wrap gap-2">
+            {['Todos', 'Economía', 'Medio Ambiente', 'Social', 'Legal'].map(cat => (
+              <button key={cat} className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-100 transition border border-gray-200">
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -22,12 +22,18 @@ const mapTopic = (row: any): Topic => ({
 });
 
 export const api = {
-    // Fetch all topics with stats
-    async fetchTopics() {
-        const { data, error } = await supabase
+    // Fetch all topics with stats, optionally filtered by category
+    async fetchTopics(category?: string) {
+        let query = supabase
             .from('topics_with_stats')
             .select('*')
             .order('created_at', { ascending: false });
+
+        if (category) {
+            query = query.eq('category', category);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         return data.map(mapTopic);
