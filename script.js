@@ -9,17 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const topicTitleInput = document.getElementById('topic-title');
 
     // State
-    let topics = JSON.parse(localStorage.getItem('voteFlowTopics')) || [];
+    let topics = JSON.parse(localStorage.getItem('laVozTopics')) || [];
 
     // --- Core Functions ---
 
     function saveTopics() {
-        localStorage.setItem('voteFlowTopics', JSON.stringify(topics));
+        localStorage.setItem('laVozTopics', JSON.stringify(topics));
     }
 
     function renderTopics() {
         topicsList.innerHTML = '';
-        
+
         if (topics.length === 0) {
             topicsList.appendChild(emptyState);
             emptyState.classList.remove('hidden');
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedTopics.forEach(topic => {
             const card = document.createElement('div');
             card.className = 'topic-card';
-            
+
             card.innerHTML = `
                 <div class="topic-content">
                     <h3>${escapeHtml(topic.title)}</h3>
