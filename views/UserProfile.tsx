@@ -117,20 +117,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                                             <option key={r.code} value={r.code}>{r.name}</option>
                                         ))}
                                     </select>
-                                    <div className="flex items-center space-x-3">
-                                        <button
-                                            onClick={handleSave}
-                                            disabled={saving}
-                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {saving ? 'Guardando...' : 'Guardar Cambios'}
-                                        </button>
-                                        {message && (
-                                            <span className={`text-sm font-medium ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                                                {message.text}
-                                            </span>
-                                        )}
-                                    </div>
+
                                     <p className="text-xs text-gray-400">Tu CCAA se utiliza para registrar tus votos automáticamente.</p>
                                 </div>
                             </dd>
@@ -145,7 +132,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                     </dl>
                 </div>
             </div>
+            <div className="px-4 py-3 bg-gray-50 text-right sm:px-6 border-t border-gray-200">
+                <div className="flex items-center justify-end space-x-3">
+                    {message && (
+                        <span className={`text-sm font-medium ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                            {message.text}
+                        </span>
+                    )}
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {saving ? 'Guardando...' : 'Guardar Cambios'}
+                    </button>
+                </div>
+            </div>
         </div>
+        </div >
     );
 };
 
