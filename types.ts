@@ -26,6 +26,7 @@ export interface Topic {
   pros: string[];
   cons: string[];
   aiAnalysis?: string;
+  hasVoted?: boolean;
 }
 
 export interface VoteRecord {
