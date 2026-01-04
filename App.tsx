@@ -114,9 +114,11 @@ const App: React.FC = () => {
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        // Prioritize username from metadata, fallback to email
+        const username = session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Ciudadano';
         setUser({
-          name: session.user.email?.split('@')[0] || 'Ciudadano',
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.email}`
+          name: username,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
         });
       }
     });
@@ -126,9 +128,10 @@ const App: React.FC = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
+        const username = session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Ciudadano';
         setUser({
-          name: session.user.email?.split('@')[0] || 'Ciudadano',
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.email}`
+          name: username,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
         });
       } else {
         setUser(null);

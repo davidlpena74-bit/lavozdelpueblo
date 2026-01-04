@@ -15,6 +15,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [sent, setSent] = useState(false);
 
   const handleMagicLinkLogin = async (e: React.FormEvent) => {
@@ -34,12 +35,42 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
     setLoading(true);
 
     if (mode === 'signup') {
+      if (!username) {
+        alert('Por favor, elige un nombre de usuario.');
+        setLoading(false);
+        return;
+      }
+
+      // Check if username exists
+      // Note: This requires the 'profiles' table and RLS policies to be set up as instructed.
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .single();
+
+      if (existingUser) {
+        alert('Este nombre de usuario ya está cogido. Por favor elige otro.');
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            username: username,
+          }
+        }
       });
       if (error) {
-        alert('Error al registrarse: ' + error.message);
+        // If trigger fails (duplicate username race condition), catch it here too.
+        if (error.message.includes('unique constraint') || error.message.includes('profiles_username_key')) {
+          alert('El nombre de usuario no está disponible.');
+        } else {
+          alert('Error al registrarse: ' + error.message);
+        }
       } else {
         alert('Usuario registrado! ' + (data.session ? 'Sesión iniciada.' : 'Por favor revisa tu correo para confirmar.'));
         if (data.session) onClose();
@@ -119,6 +150,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
                 <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
                 <input type="email" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="ejemplo@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Nombre de Usuario</label>
+                  <input type="text" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="usuario_unico" value={username} onChange={(e) => setUsername(e.target.value)} />
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Contraseña</label>
                 <input type="password" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
