@@ -96,8 +96,8 @@ export const api = {
         if (error) throw error;
         return data;
     },
-    // Update user profile fields (region, dni, etc.)
-    async updateUserProfile(userId: string, updates: { region?: RegionCode; dni?: string }) {
+    // Update user profile fields (region, dni, avatar, etc.)
+    async updateUserProfile(userId: string, updates: { region?: RegionCode; dni?: string; avatar_url?: string }) {
         const { error } = await supabase
             .from('profiles')
             .update(updates)

@@ -27,19 +27,40 @@ const REGIONS: { code: RegionCode; name: string }[] = [
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     const [region, setRegion] = useState<string>(user.region || '');
     const [dni, setDni] = useState<string>('');
+    const [avatar, setAvatar] = useState<string>(user.avatar || '');
+    const [initialDni, setInitialDni] = useState<string>(''); // Track loaded DNI
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    // Generate avatar options
+    const avatarOptions = [
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`,
+        `https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}`,
+        `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`,
+        `https://api.dicebear.com/7.x/lorelei/svg?seed=${user.name}`,
+        `https://api.dicebear.com/7.x/notionists/svg?seed=${user.name}`,
+        `https://api.dicebear.com/7.x/micah/svg?seed=${user.name}`
+    ];
 
     // Sync local state if user prop changes
     useEffect(() => {
         setRegion(user.region || '');
+        setAvatar(user.avatar || '');
         // Fetch DNI separately since it might not be in the passed user object yet (depends on App.tsx)
         const fetchExtendedProfile = async () => {
-            const { data } = await supabase.from('profiles').select('dni').eq('id', user.id).single();
-            if (data?.dni) setDni(data.dni);
+            const { data } = await supabase.from('profiles').select('dni, avatar_url').eq('id', user.id).single();
+            if (data?.dni) {
+                setDni(data.dni);
+                setInitialDni(data.dni);
+            }
+            if (data?.avatar_url) {
+                setAvatar(data.avatar_url);
+            }
         };
         fetchExtendedProfile();
-    }, [user.id, user.region]);
+    }, [user.id, user.region, user.avatar]);
+
+    const isDirty = (region !== (user.region || '')) || (dni !== initialDni) || (avatar !== user.avatar);
 
     const handleSave = async () => {
         setMessage(null);
@@ -54,9 +75,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
         try {
             await api.updateUserProfile(user.id, {
                 region: region as RegionCode,
-                dni: dni || undefined
+                dni: dni || undefined,
+                avatar_url: avatar
             });
-            setMessage({ type: 'success', text: 'Perfil actualizado correctamente.' });
+            setMessage({ type: 'success', text: 'Perfil actualizado correctamente. Recarga para actualizar tu foto en toda la app.' });
+            setInitialDni(dni); // Update initial state to match new saved state
+            // Ideally trigger app refresh for region, but local state is fine for now
         } catch (error: any) {
             setMessage({ type: 'error', text: 'Error al actualizar: ' + error.message });
         } finally {
@@ -76,7 +100,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                         <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt className="text-sm font-medium text-gray-500">Avatar</dt>
                             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                <img className="h-16 w-16 rounded-full border-2 border-indigo-100" src={user.avatar} alt="Avatar" />
+                                <div className="flex flex-col space-y-4">
+                                    <div className="flex items-center space-x-4">
+                                        <img className="h-20 w-20 rounded-full border-4 border-white shadow-lg bg-gray-100" src={avatar} alt="Current Avatar" />
+                                        <div className="flex flex-wrap gap-2">
+                                            {avatarOptions.map((opt, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => setAvatar(opt)}
+                                                    className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all hover:scale-110 ${avatar === opt ? 'border-indigo-600 ring-2 ring-indigo-200 ring-offset-2' : 'border-gray-200 hover:border-gray-400'}`}
+                                                >
+                                                    <img src={opt} alt={`Option ${idx}`} className="w-full h-full object-cover" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-400">Selecciona un estilo para tu avatar.</p>
+                                </div>
                             </dd>
                         </div>
                         <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -123,7 +163,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                             </dd>
                         </div>
 
-                        <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt className="text-sm font-medium text-gray-500">ID de Usuario</dt>
                             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-mono text-xs text-gray-400 select-all">
                                 {user.id}
@@ -141,7 +181,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                     )}
                     <button
                         onClick={handleSave}
-                        disabled={saving}
+                        disabled={saving || !isDirty}
                         className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {saving ? 'Guardando...' : 'Guardar Cambios'}
@@ -149,7 +189,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                 </div>
             </div>
         </div>
-        </div >
     );
 };
 
