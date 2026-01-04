@@ -27,6 +27,8 @@ export interface Topic {
   cons: string[];
   aiAnalysis?: string;
   hasVoted?: boolean;
+  labelSupport?: string;
+  labelOppose?: string;
 }
 
 export interface VoteRecord {

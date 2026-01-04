@@ -18,7 +18,9 @@ const mapTopic = (row: any): Topic => ({
     pros: row.pros || [],
     cons: row.cons || [],
     aiAnalysis: row.ai_analysis,
-    hasVoted: row.has_voted // from view
+    hasVoted: row.has_voted, // from view
+    labelSupport: row.label_support,
+    labelOppose: row.label_oppose
 });
 
 export const api = {

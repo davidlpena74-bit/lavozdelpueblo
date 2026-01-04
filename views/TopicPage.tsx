@@ -58,8 +58,8 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm">
             <div className="flex items-center space-x-2 mb-4">
-               <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full uppercase tracking-wider">{topic.category}</span>
-               <span className="text-gray-400 text-sm">• Encuesta Activa</span>
+              <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full uppercase tracking-wider">{topic.category}</span>
+              <span className="text-gray-400 text-sm">• Encuesta Activa</span>
             </div>
             <h1 className="text-4xl font-extrabold text-gray-900 mb-6 leading-tight">{topic.title}</h1>
             <p className="text-lg text-gray-600 leading-relaxed mb-8">
@@ -68,12 +68,12 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
 
             <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Emite tu Voto Ciudadano</h3>
-              
+
               {!hasVoted ? (
                 <div className="space-y-8">
                   <div className="max-w-xs">
                     <label className="block text-sm font-bold text-gray-700 mb-2">Tu Comunidad Autónoma:</label>
-                    <select 
+                    <select
                       value={selectedRegion}
                       onChange={(e) => setSelectedRegion(e.target.value as RegionCode)}
                       className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
@@ -88,25 +88,25 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <button 
+                    <button
                       onClick={() => handleVoteClick('support')}
                       className={`flex flex-col items-center p-6 bg-white border-2 border-gray-100 hover:border-green-500 rounded-2xl transition-all group shadow-sm hover:shadow-md ${!selectedRegion && 'opacity-60 grayscale-[0.5]'}`}
                     >
                       <div className="w-14 h-14 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                       </div>
-                      <span className="font-bold text-gray-900 uppercase tracking-wide text-sm">A favor</span>
+                      <span className="font-bold text-gray-900 uppercase tracking-wide text-sm">{topic.labelSupport || 'A favor'}</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleVoteClick('oppose')}
                       className={`flex flex-col items-center p-6 bg-white border-2 border-gray-100 hover:border-red-500 rounded-2xl transition-all group shadow-sm hover:shadow-md ${!selectedRegion && 'opacity-60 grayscale-[0.5]'}`}
                     >
                       <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
                       </div>
-                      <span className="font-bold text-gray-900 uppercase tracking-wide text-sm">En contra</span>
+                      <span className="font-bold text-gray-900 uppercase tracking-wide text-sm">{topic.labelOppose || 'En contra'}</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleVoteClick('neutral')}
                       className={`flex flex-col items-center p-6 bg-white border-2 border-gray-100 hover:border-gray-500 rounded-2xl transition-all group shadow-sm hover:shadow-md ${!selectedRegion && 'opacity-60 grayscale-[0.5]'}`}
                     >
@@ -119,7 +119,7 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
                   {!user && (
                     <div className="text-center">
                       <p className="text-sm text-gray-500 mb-2 font-medium">Es necesario estar identificado para votar</p>
-                      <button 
+                      <button
                         onClick={onRequireAuth}
                         className="text-indigo-600 font-bold hover:text-indigo-700 underline text-sm"
                       >
@@ -141,8 +141,8 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-900">Distribución Geográfica</h3>
               <div className="flex space-x-2">
-                 <div className="h-3 w-10 bg-green-500 rounded-full"></div>
-                 <div className="h-3 w-10 bg-red-500 rounded-full"></div>
+                <div className="h-3 w-10 bg-green-500 rounded-full"></div>
+                <div className="h-3 w-10 bg-red-500 rounded-full"></div>
               </div>
             </div>
             <SpainMap regionalVotes={topic.regionalVotes} />
@@ -184,14 +184,14 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
         <div className="space-y-8">
           <div className="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm sticky top-24">
             <h3 className="text-lg font-bold text-gray-900 mb-6 border-b border-gray-100 pb-2">Estadísticas en Tiempo Real</h3>
-            <VoteChart votes={topic.votes} />
+            <VoteChart votes={topic.votes} labelSupport={topic.labelSupport} labelOppose={topic.labelOppose} />
             <div className="mt-8 space-y-4">
               <div className="flex justify-between items-center text-sm p-3 bg-green-50 rounded-xl">
-                <span className="text-green-700 font-medium">A favor</span>
+                <span className="text-green-700 font-medium">{topic.labelSupport || 'A favor'}</span>
                 <span className="font-extrabold text-green-700">{topic.votes.support}</span>
               </div>
               <div className="flex justify-between items-center text-sm p-3 bg-red-50 rounded-xl">
-                <span className="text-red-700 font-medium">En contra</span>
+                <span className="text-red-700 font-medium">{topic.labelOppose || 'En contra'}</span>
                 <span className="font-extrabold text-red-700">{topic.votes.oppose}</span>
               </div>
               <div className="flex justify-between items-center text-sm p-3 bg-slate-100 rounded-xl">
@@ -203,7 +203,7 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
             <div className="mt-8 p-6 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-lg text-white">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="p-1 bg-white/20 rounded-lg">
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 </div>
                 <h3 className="font-bold text-sm uppercase tracking-wider">Perspectiva IA</h3>
               </div>
