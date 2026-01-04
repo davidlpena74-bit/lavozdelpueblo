@@ -95,12 +95,12 @@ export const api = {
 
         if (error) throw error;
         return data;
-    }
-    // Update user region
-    async updateUserRegion(userId: string, region: RegionCode) {
+    },
+    // Update user profile fields (region, dni, etc.)
+    async updateUserProfile(userId: string, updates: { region?: RegionCode; dni?: string }) {
         const { error } = await supabase
             .from('profiles')
-            .update({ region })
+            .update(updates)
             .eq('id', userId);
 
         if (error) throw error;
