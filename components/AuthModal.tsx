@@ -10,28 +10,51 @@ interface AuthModalProps {
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+  const [view, setView] = useState<'magic_link' | 'password'>('password'); // Default to password as per request
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
 
-  // Check if session exists on mount/open could be added here
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [sent, setSent] = useState(false);
 
   const handleMagicLinkLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    // Supabase Magic Link Login
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: window.location.origin, // Redirect back to this page
-      },
+      options: { emailRedirectTo: window.location.origin },
     });
+    if (error) alert('Error: ' + error.message);
+    else setSent(true);
+    setLoading(false);
+  };
 
-    if (error) {
-      alert('Error: ' + error.message);
+  const handlePasswordAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (mode === 'signup') {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) {
+        alert('Error al registrarse: ' + error.message);
+      } else {
+        alert('Usuario registrado! ' + (data.session ? 'Sesión iniciada.' : 'Por favor revisa tu correo para confirmar.'));
+        if (data.session) onClose();
+      }
     } else {
-      setSent(true);
-      // For UX, we don't close the modal immediately, we show a success message
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        alert('Error al entrar: ' + error.message);
+      } else {
+        // Session listener in App.tsx will handle the rest
+        onClose();
+      }
     }
     setLoading(false);
   };
@@ -56,64 +79,69 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
             </button>
           </div>
 
-          <p className="text-gray-600 mb-8 text-sm leading-relaxed">
-            Ingresa tu correo electrónico para recibir un enlace de acceso seguro. Sin contraseñas que recordar.
-          </p>
+          <div className="flex space-x-2 mb-6 bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setView('password')}
+              className={`flex - 1 py - 1.5 text - sm font - medium rounded - md transition - all ${view === 'password' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'} `}
+            >
+              Contraseña
+            </button>
+            <button
+              onClick={() => setView('magic_link')}
+              className={`flex - 1 py - 1.5 text - sm font - medium rounded - md transition - all ${view === 'magic_link' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'} `}
+            >
+              Link Mágico
+            </button>
+          </div>
 
-          {sent ? (
-            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-100">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
+          {view === 'magic_link' ? (
+            sent ? (
+              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-100">
+                <h3 className="text-lg font-medium text-green-900">¡Enlace enviado!</h3>
+                <p className="mt-2 text-sm text-green-600">Revisa {email}</p>
+                <button onClick={onClose} className="mt-4 text-sm font-medium text-green-600 hover:text-green-500">Cerrar</button>
               </div>
-              <h3 className="text-lg font-medium text-green-900">¡Enlace enviado!</h3>
-              <p className="mt-2 text-sm text-green-600">
-                Revisa tu bandeja de entrada ({email}) y haz clic en el enlace para entrar.
-              </p>
-              <button
-                onClick={onClose}
-                className="mt-4 text-sm font-medium text-green-600 hover:text-green-500"
-              >
-                Cerrar ventana
-              </button>
-            </div>
+            ) : (
+              <form onSubmit={handleMagicLinkLogin} className="space-y-4">
+                <p className="text-gray-600 text-sm">Te enviaremos un enlace a tu correo. Sin contraseñas.</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                  <input type="email" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="ejemplo@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <button type="submit" disabled={loading} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-md disabled:opacity-50">
+                  {loading ? 'Enviando...' : 'Enviar Enlace Mágico ✨'}
+                </button>
+              </form>
+            )
           ) : (
-            <form onSubmit={handleMagicLinkLogin} className="space-y-4">
+            <form onSubmit={handlePasswordAuth} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Correo Electrónico
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="ejemplo@correo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <input type="email" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="ejemplo@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+                <input type="password" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full flex items-center justify-center py-3 bg-indigo-600 hover:bg-indigo-700 transition-all font-bold text-white rounded-full shadow-md disabled:opacity-50`}
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <span>Enviar Enlace Mágico ✨</span>
-                )}
+              <button type="submit" disabled={loading} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-md disabled:opacity-50">
+                {loading ? 'Procesando...' : (mode === 'signin' ? 'Iniciar Sesión' : 'Registrarse')}
               </button>
+
+              <div className="text-center mt-4">
+                <button
+                  type="button"
+                  className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+                  onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+                >
+                  {mode === 'signin' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia Sesión'}
+                </button>
+              </div>
             </form>
           )}
 
-          <div className="mt-10 pt-6 border-t border-gray-50 text-center">
-            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold flex items-center justify-center">
-              <svg className="w-3 h-3 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.9L10 1.154l7.834 3.746v5.203c0 5.061-3.345 9.778-7.834 11.05-4.489-1.272-7.834-5.989-7.834-11.05V4.9zM10 8a1 1 0 011 1v5a1 1 0 11-2 0V9a1 1 0 011-1zm0-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>
-              Powered by Supabase Auth
-            </p>
+          <div className="mt-8 text-center">
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Powered by Supabase Auth</p>
           </div>
         </div>
       </div>
