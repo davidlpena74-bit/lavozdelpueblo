@@ -8,6 +8,8 @@ import TopicPage from './views/TopicPage';
 import NewTopic from './views/NewTopic';
 import AuthModal from './components/AuthModal';
 import { Topic, RegionCode } from './types';
+import UserProfile from './views/UserProfile';
+import UserVotes from './views/UserVotes';
 
 const REGIONS: RegionCode[] = ['AN', 'AR', 'AS', 'IB', 'CN', 'CB', 'CM', 'CL', 'CT', 'VC', 'EX', 'GA', 'MD', 'MC', 'NC', 'PV', 'RI', 'CE', 'ML'];
 
@@ -75,9 +77,15 @@ const Navigation: React.FC<{ user: any; onLogin: () => void; onLogout: () => voi
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-3 bg-gray-50 pr-1 pl-3 py-1 rounded-full border border-gray-200">
-                <span className="text-xs font-bold text-gray-700">{user.name}</span>
-                <img src={user.avatar} className="w-8 h-8 rounded-full border border-white shadow-sm" alt="User" />
-                <button onClick={onLogout} className="p-1.5 text-gray-400 hover:text-red-500 transition">
+                <Link to="/profile" className="flex items-center space-x-2 hover:opacity-80">
+                  <span className="text-xs font-bold text-gray-700">{user.name}</span>
+                  <img src={user.avatar} className="w-8 h-8 rounded-full border border-white shadow-sm" alt="User" />
+                </Link>
+                <Link to="/profile/votes" className="text-gray-400 hover:text-indigo-600 p-1" title="Mis Votos">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                </Link>
+                <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                <button onClick={onLogout} className="p-1.5 text-gray-400 hover:text-red-500 transition" title="Cerrar Sesión">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                 </button>
               </div>
@@ -102,7 +110,7 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : INITIAL_TOPICS;
   });
 
-  const [user, setUser] = useState<{ name: string; avatar: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; avatar: string; email: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
 
@@ -127,7 +135,9 @@ const App: React.FC = () => {
         // Prioritize username from metadata, fallback to email
         const username = session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Ciudadano';
         setUser({
+          id: session.user.id,
           name: username,
+          email: session.user.email || '',
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
         });
       }
@@ -140,7 +150,9 @@ const App: React.FC = () => {
       if (session?.user) {
         const username = session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Ciudadano';
         setUser({
+          id: session.user.id,
           name: username,
+          email: session.user.email || '',
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
         });
       } else {
@@ -193,13 +205,18 @@ const App: React.FC = () => {
             <Route path="/" element={<Dashboard topics={topics} />} />
             <Route path="/topic/:id" element={<TopicPage topics={topics} onVote={handleVote} user={user} onRequireAuth={() => setIsAuthModalOpen(true)} />} />
             <Route path="/new" element={<NewTopic onAddTopic={handleAddTopic} />} />
+            {user && (
+              <>
+                <Route path="/profile" element={<UserProfile user={user} />} />
+                <Route path="/profile/votes" element={<UserVotes userId={user.id} />} />
+              </>
+            )}
           </Routes>
         </main>
 
         <AuthModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
-          onLoginSuccess={(userData) => setUser(userData)}
         />
 
         <footer className="bg-white border-t border-gray-200 py-12 mt-12">

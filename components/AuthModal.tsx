@@ -5,10 +5,9 @@ import { supabase } from '../src/services/supabase';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (user: { name: string; avatar: string }) => void;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<'magic_link' | 'password'>('password'); // Default to password as per request
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');

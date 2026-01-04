@@ -54,9 +54,7 @@ export const api = {
 
     // Cast a vote
     async castVote(topicId: string, choice: 'support' | 'oppose' | 'neutral', region: RegionCode) {
-        // 1. Check if already voted (client side check, DB also enforces unique)
-        // We'll rely on DB unique constraint to throw error if duplicate.
-
+        // ... (existing code)
         // 2. Insert vote
         const { error } = await supabase
             .from('votes')
@@ -74,5 +72,20 @@ export const api = {
         }
 
         return true;
+    },
+
+    // Fetch votes for a specific user
+    async fetchUserVotes(userId: string) {
+        const { data, error } = await supabase
+            .from('votes')
+            .select(`
+                *,
+                topic:topics (title, category)
+            `)
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data;
     }
 };
