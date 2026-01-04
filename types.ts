@@ -1,6 +1,6 @@
 
-export type RegionCode = 
-  | 'AN' | 'AR' | 'AS' | 'IB' | 'CN' | 'CB' | 'CM' | 'CL' | 'CT' | 'VC' 
+export type RegionCode =
+  | 'AN' | 'AR' | 'AS' | 'IB' | 'CN' | 'CB' | 'CM' | 'CL' | 'CT' | 'VC'
   | 'EX' | 'GA' | 'MD' | 'MC' | 'NC' | 'PV' | 'RI' | 'CE' | 'ML';
 
 export interface RegionalVotes {

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { supabase } from './src/services/supabase';
+import { api } from './src/services/api';
 import Dashboard from './views/Dashboard';
 import TopicPage from './views/TopicPage';
 import NewTopic from './views/NewTopic';
@@ -104,12 +105,21 @@ const App: React.FC = () => {
   const [user, setUser] = useState<{ name: string; avatar: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // ... imports
+
+
+
+  const loadTopics = async () => {
+    try {
+      const data = await api.fetchTopics();
+      setTopics(data);
+    } catch (error) {
+      console.error('Error fetching topics:', error);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem('politipoll_topics_v2', JSON.stringify(topics));
-  }, [topics]);
-
+    loadTopics();
+  }, [user]); // Reload when user changes to update 'hasVoted' status
   useEffect(() => {
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -138,36 +148,33 @@ const App: React.FC = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const handleAddTopic = (newTopic: Topic) => {
-    setTopics(prev => [newTopic, ...prev]);
+  const handleAddTopic = async (newTopic: Topic) => {
+    try {
+      await api.createTopic(newTopic);
+      await loadTopics(); // Refresh list
+      // Note: In a real app we might optimistically update or just append the returned data
+    } catch (e: any) {
+      alert('Error creating topic: ' + e.message);
+    }
   };
 
-  const handleVote = (topicId: string, choice: 'support' | 'oppose' | 'neutral', region: RegionCode) => {
-    setTopics(prev => prev.map(t => {
-      if (t.id === topicId) {
-        const updatedRegional = { ...t.regionalVotes };
-        if (!updatedRegional[region]) {
-          updatedRegional[region] = { support: 0, oppose: 0, neutral: 0 };
-        }
-        updatedRegional[region] = {
-          ...updatedRegional[region],
-          [choice]: updatedRegional[region][choice] + 1
-        };
+  const handleVote = async (topicId: string, choice: 'support' | 'oppose' | 'neutral', region: RegionCode) => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
 
-        return {
-          ...t,
-          votes: {
-            ...t.votes,
-            [choice]: t.votes[choice] + 1
-          },
-          regionalVotes: updatedRegional
-        };
-      }
-      return t;
-    }));
+    try {
+      await api.castVote(topicId, choice, region);
+      await loadTopics(); // Refresh to catch new stats
+    } catch (e: any) {
+      alert(e.message);
+    }
   };
 
   return (
