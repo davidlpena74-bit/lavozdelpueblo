@@ -112,7 +112,7 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : INITIAL_TOPICS;
   });
 
-  const [user, setUser] = useState<{ id: string; name: string; avatar: string; email: string; region?: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; avatar: string; email: string; region?: string; is_fake?: boolean } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
 
@@ -160,7 +160,7 @@ const App: React.FC = () => {
     // Fetch extended profile data (region)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('region')
+      .select('region, is_fake, avatar_url')
       .eq('id', sessionUser.id)
       .single();
 
@@ -168,8 +168,9 @@ const App: React.FC = () => {
       id: sessionUser.id,
       name: username,
       email: sessionUser.email || '',
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-      region: profile?.region || sessionUser.user_metadata?.region // Fallback to metadata if DB fetch fails or is pending
+      avatar: profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      region: profile?.region || sessionUser.user_metadata?.region, // Fallback to metadata if DB fetch fails or is pending
+      is_fake: profile?.is_fake
     });
   };
 
