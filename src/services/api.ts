@@ -96,4 +96,14 @@ export const api = {
         if (error) throw error;
         return data;
     }
+    // Update user region
+    async updateUserRegion(userId: string, region: RegionCode) {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ region })
+            .eq('id', userId);
+
+        if (error) throw error;
+        return true;
+    },
 };
