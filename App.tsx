@@ -107,10 +107,7 @@ const Navigation: React.FC<{ user: any; onLogin: () => void; onLogout: () => voi
 };
 
 const App: React.FC = () => {
-  const [topics, setTopics] = useState<Topic[]>(() => {
-    const saved = localStorage.getItem('politipoll_topics_v2');
-    return saved ? JSON.parse(saved) : INITIAL_TOPICS;
-  });
+  const [topics, setTopics] = useState<Topic[]>([]); // Start empty, let API fill it
 
   const [user, setUser] = useState<{ id: string; name: string; avatar: string; email: string; region?: string; is_fake?: boolean } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
