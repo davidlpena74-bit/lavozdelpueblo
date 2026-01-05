@@ -1,6 +1,6 @@
 
 import { supabase } from './supabase';
-import { Topic, RegionCode } from '../../types';
+import { Topic, RegionCode, OccupationType, GenderType } from '../../types';
 
 // Map database row to app Topic type
 const mapTopic = (row: any): Topic => ({
@@ -99,7 +99,14 @@ export const api = {
         return data;
     },
     // Update user profile fields (region, dni, avatar, etc.)
-    async updateUserProfile(userId: string, updates: { region?: RegionCode; dni?: string; avatar_url?: string }) {
+    async updateUserProfile(userId: string, updates: {
+        region?: RegionCode;
+        dni?: string;
+        avatar_url?: string;
+        age?: number;
+        occupation?: OccupationType;
+        gender?: GenderType;
+    }) {
         const { error } = await supabase
             .from('profiles')
             .update(updates)

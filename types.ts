@@ -43,3 +43,15 @@ export interface AIInsightResponse {
   pros: string[];
   cons: string[];
 }
+
+export type OccupationType =
+  | 'Estudiante'
+  | 'Desempleado'
+  | 'Trabajador Manual / Obrero'
+  | 'Trabajador Servicios / Administrativo'
+  | 'Profesional Técnico / Autónomo'
+  | 'Directivo / Empresario'
+  | 'Jubilado'
+  | 'Otras';
+
+export type GenderType = 'Masculino' | 'Femenino' | 'Otro' | 'Prefiero no decir';

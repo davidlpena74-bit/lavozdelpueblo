@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../src/services/api';
-import { RegionCode } from '../types';
+import { RegionCode, OccupationType, GenderType } from '../types';
 import { validateDNI } from '../src/utils/validation';
 import { supabase } from '../src/services/supabase'; // Direct import to fetch DNI on load if not in session
 
@@ -25,11 +25,35 @@ const REGIONS: { code: RegionCode; name: string }[] = [
     { code: 'ML', name: 'Melilla' }
 ];
 
+const OCCUPATIONS: OccupationType[] = [
+    'Estudiante',
+    'Desempleado',
+    'Trabajador Manual / Obrero',
+    'Trabajador Servicios / Administrativo',
+    'Profesional Técnico / Autónomo',
+    'Directivo / Empresario',
+    'Jubilado',
+    'Otras'
+];
+
+const GENDERS: GenderType[] = ['Masculino', 'Femenino', 'Otro', 'Prefiero no decir'];
+
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     const [region, setRegion] = useState<string>(user.region || '');
     const [dni, setDni] = useState<string>('');
     const [avatar, setAvatar] = useState<string>(user.avatar || '');
-    const [initialDni, setInitialDni] = useState<string>(''); // Track loaded DNI
+    const [age, setAge] = useState<string>(''); // Keep as string for input handling
+    const [occupation, setOccupation] = useState<string>('');
+    const [gender, setGender] = useState<string>('');
+
+    // Tracking initial values for dirty check
+    const [initialState, setInitialState] = useState({
+        dni: '',
+        age: '',
+        occupation: '',
+        gender: ''
+    });
+
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -48,21 +72,45 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     useEffect(() => {
         setRegion(user.region || '');
         setAvatar(user.avatar || '');
-        // Fetch DNI separately since it might not be in the passed user object yet (depends on App.tsx)
+        // Fetch extended profile
         const fetchExtendedProfile = async () => {
-            const { data } = await supabase.from('profiles').select('dni, avatar_url').eq('id', user.id).single();
-            if (data?.dni) {
-                setDni(data.dni);
-                setInitialDni(data.dni);
-            }
-            if (data?.avatar_url) {
-                setAvatar(data.avatar_url);
+            const { data } = await supabase
+                .from('profiles')
+                .select('dni, avatar_url, age, occupation, gender')
+                .eq('id', user.id)
+                .single();
+
+            if (data) {
+                const newDni = data.dni || '';
+                const newAge = data.age ? data.age.toString() : '';
+                const newOccupation = data.occupation || '';
+                const newGender = data.gender || '';
+
+                setDni(newDni);
+                setAge(newAge);
+                setOccupation(newOccupation);
+                setGender(newGender);
+
+                if (data.avatar_url) setAvatar(data.avatar_url);
+
+                setInitialState({
+                    dni: newDni,
+                    age: newAge,
+                    occupation: newOccupation,
+                    gender: newGender
+                });
             }
         };
         fetchExtendedProfile();
     }, [user.id, user.region, user.avatar]);
 
-    const isDirty = (region !== (user.region || '')) || (dni !== initialDni) || (avatar !== user.avatar);
+    const isDirty =
+        (region !== (user.region || '')) ||
+        (avatar !== user.avatar) ||
+        (dni !== initialState.dni) ||
+        (age !== initialState.age) ||
+        (occupation !== initialState.occupation) ||
+        (gender !== initialState.gender);
 
     const handleSave = async () => {
         setMessage(null);
@@ -78,11 +126,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
             await api.updateUserProfile(user.id, {
                 region: region as RegionCode,
                 dni: dni || undefined,
-                avatar_url: avatar
+                avatar_url: avatar,
+                age: age ? parseInt(age) : undefined,
+                occupation: occupation as OccupationType || undefined,
+                gender: gender as GenderType || undefined
             });
             setMessage({ type: 'success', text: 'Perfil actualizado correctamente. Recarga para actualizar tu foto en toda la app.' });
-            setInitialDni(dni); // Update initial state to match new saved state
-            // Ideally trigger app refresh for region, but local state is fine for now
+
+            setInitialState({
+                dni,
+                age,
+                occupation,
+                gender
+            });
         } catch (error: any) {
             setMessage({ type: 'error', text: 'Error al actualizar: ' + error.message });
         } finally {
@@ -155,14 +211,61 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                             <dt className="text-sm font-medium text-gray-500">Nombre de Usuario</dt>
                             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium flex items-center">
                                 {user.name}
-                                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_fake ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                                    {user.is_fake ? 'Simulado' : 'Verificado'}
-                                </span>
                             </dd>
                         </div>
                         <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt className="text-sm font-medium text-gray-500">Correo Electrónico</dt>
                             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user.email}</dd>
+                        </div>
+
+                        {/* Occupation */}
+                        <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt className="text-sm font-medium text-gray-500 pt-3">Ocupación / Clase</dt>
+                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <select
+                                    value={occupation}
+                                    onChange={(e) => setOccupation(e.target.value)}
+                                    className="block w-full max-w-xs pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border"
+                                >
+                                    <option value="" disabled>Selecciona tu ocupación...</option>
+                                    {OCCUPATIONS.map(occ => (
+                                        <option key={occ} value={occ}>{occ}</option>
+                                    ))}
+                                </select>
+                            </dd>
+                        </div>
+
+                        {/* Age and Gender */}
+                        <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt className="text-sm font-medium text-gray-500 pt-3">Datos Demográficos</dt>
+                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <div className="grid grid-cols-2 gap-4 max-w-xs">
+                                    <div>
+                                        <label className="block text-xs text-gray-500 mb-1">Edad</label>
+                                        <input
+                                            type="number"
+                                            min="16"
+                                            max="120"
+                                            value={age}
+                                            onChange={(e) => setAge(e.target.value)}
+                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-500 mb-1">Género</label>
+                                        <select
+                                            value={gender}
+                                            onChange={(e) => setGender(e.target.value)}
+                                            className="block w-full pl-3 pr-8 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                        >
+                                            <option value="" disabled>Selecciona...</option>
+                                            {GENDERS.map(g => (
+                                                <option key={g} value={g}>{g}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            </dd>
                         </div>
 
                         <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -194,7 +297,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                                             <option key={r.code} value={r.code}>{r.name}</option>
                                         ))}
                                     </select>
-
                                     <p className="text-xs text-gray-400">Tu CCAA se utiliza para registrar tus votos automáticamente.</p>
                                 </div>
                             </dd>
