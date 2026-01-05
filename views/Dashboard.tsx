@@ -14,7 +14,7 @@ const Dashboard: React.FC<DashboardProps> = ({ topics, title = "Temas en Tendenc
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <header className="mb-12 text-center">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
-          Democracia impulsada por <span className="text-indigo-600">Inteligencia</span>
+          Democracia impulsada por <span className="text-indigo-600">Inteligencia Popular</span>
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           Explora los debates políticos actuales, emite tu voto y obtén análisis equilibrados potenciados por IA avanzada.
