@@ -30,7 +30,7 @@ const CategoryList: React.FC = () => {
                 </h1>
                 {userCount !== null && (
                     <p className="mt-2 text-sm text-indigo-600 font-medium">
-                        Ya somos {userCount} ciudadanos registrados
+                        Ya somos <span className="font-bold text-lg">{userCount.toLocaleString()}</span> ciudadanos registrados
                     </p>
                 )}
                 <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">
