@@ -14,11 +14,11 @@ const mapTopic = (row: any): Topic => ({
         oppose: row.oppose_count || 0,
         neutral: row.neutral_count || 0,
     },
-    regionalVotes: row.regional_votes || {}, // Fallback for now/cache
+    regionalVotes: row.regionalVotes || {},
     pros: row.pros || [],
     cons: row.cons || [],
     aiAnalysis: row.ai_analysis,
-    hasVoted: row.has_voted, // from view
+    hasVoted: row.hasVoted, // from view matches strict alias
     labelSupport: row.label_support,
     labelOppose: row.label_oppose
 });

@@ -12,6 +12,8 @@ import UserProfile from './views/UserProfile';
 import UserVotes from './views/UserVotes';
 import CategoryList from './views/CategoryList';
 import CategoryDashboard from './views/CategoryDashboard';
+import Terms from './views/Terms';
+import Privacy from './views/Privacy';
 
 const REGIONS: RegionCode[] = ['AN', 'AR', 'AS', 'IB', 'CN', 'CB', 'CM', 'CL', 'CT', 'VC', 'EX', 'GA', 'MD', 'MC', 'NC', 'PV', 'RI', 'CE', 'ML'];
 
@@ -219,6 +221,8 @@ const App: React.FC = () => {
                 <Route path="/profile/votes" element={<UserVotes userId={user.id} />} />
               </>
             )}
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
           </Routes>
         </main>
 
@@ -231,8 +235,8 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
             <p>&copy; 2026 LaVozDelPueblo.es. Todos los derechos reservados.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="hover:text-indigo-600 transition">Términos</a>
-              <a href="#" className="hover:text-indigo-600 transition">Privacidad</a>
+              <Link to="/terms" className="hover:text-indigo-600 transition">Términos</Link>
+              <Link to="/privacy" className="hover:text-indigo-600 transition">Privacidad</Link>
             </div>
           </div>
         </footer>
