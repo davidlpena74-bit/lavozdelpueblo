@@ -51,7 +51,9 @@ export const api = {
                 description: topic.description,
                 pros: topic.pros,
                 cons: topic.cons,
-                ai_analysis: topic.aiAnalysis
+                ai_analysis: topic.aiAnalysis,
+                label_support: topic.labelSupport,
+                label_oppose: topic.labelOppose
             })
             .select()
             .single();

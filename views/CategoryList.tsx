@@ -10,6 +10,9 @@ const CATEGORIES = [
     { id: 'Medio Ambiente', name: 'Medio Ambiente', icon: '🌱', description: 'Cambio climático, energía y naturaleza.' },
     { id: 'Tecnología', name: 'Tecnología', icon: '💻', description: 'Innovación, IA y privacidad digital.' },
     { id: 'Sanidad', name: 'Sanidad', icon: '🏥', description: 'Salud pública, medicina y bienestar.' },
+    { id: 'Educación', name: 'Educación', icon: '🎓', description: 'Sistema educativo, becas y docencia.' },
+    { id: 'Ciencia', name: 'Ciencia', icon: '🔭', description: 'Investigación, espacio y descubrimientos.' },
+    { id: 'Entretenimiento', name: 'Entretenimiento', icon: '🎭', description: 'Cine, música, cultura y ocio.' },
 ];
 
 const CategoryList: React.FC = () => {
