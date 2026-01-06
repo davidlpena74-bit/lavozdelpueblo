@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { api } from '../services/api';
-import { Comment } from '../../types';
+import { api } from '../src/services/api';
+import { Comment } from '../types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
