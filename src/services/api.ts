@@ -1,6 +1,6 @@
 
 import { supabase } from './supabase';
-import { Topic, RegionCode, OccupationType, GenderType } from '../../types';
+import { Topic, RegionCode, OccupationType, GenderType, Comment } from '../../types';
 
 // Map database row to app Topic type
 const mapTopic = (row: any): Topic => ({
@@ -24,6 +24,52 @@ const mapTopic = (row: any): Topic => ({
 });
 
 export const api = {
+    // COMMENTS
+    async fetchComments(topicId: string) {
+        const { data, error } = await supabase
+            .from('comments')
+            .select(`
+                id,
+                content,
+                created_at,
+                user_id,
+                profiles:user_id (
+                    region,
+                    avatar_url
+                 )
+            `)
+            .eq('topic_id', topicId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return data.map((row: any) => ({
+            id: row.id,
+            topicId: topicId,
+            userId: row.user_id,
+            userName: 'Ciudadano ' + row.user_id.slice(0, 4),
+            userAvatar: row.profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${row.user_id}`,
+            content: row.content,
+            createdAt: new Date(row.created_at).getTime()
+        }));
+    },
+
+    async postComment(topicId: string, content: string, userId: string) {
+        const { data, error } = await supabase
+            .from('comments')
+            .insert({
+                topic_id: topicId,
+                user_id: userId,
+                content: content
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    // TOPICS
     // Fetch all topics with stats, optionally filtered by category
     async fetchTopics(category?: string) {
         let query = supabase

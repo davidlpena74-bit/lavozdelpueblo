@@ -11,6 +11,17 @@ export interface RegionalVotes {
   };
 }
 
+export interface Comment {
+  id: string;
+  topicId: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  content: string;
+  createdAt: number;
+  isOwn?: boolean; // Helper to know if current user can delete
+}
+
 export interface Topic {
   id: string;
   title: string;

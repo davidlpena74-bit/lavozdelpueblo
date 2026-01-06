@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Topic, RegionCode } from '../types';
 import VoteChart from '../components/VoteChart';
 import SpainMap from '../components/SpainMap';
+import CommentsSection from '../components/CommentsSection';
 
 interface TopicPageProps {
   topics: Topic[];
@@ -172,6 +173,8 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
               </ul>
             </div>
           </div>
+
+          <CommentsSection topicId={topic.id} user={user} onRequireAuth={onRequireAuth} />
         </div>
 
         {/* Right Column: Statistics & AI Summary */}
@@ -208,7 +211,7 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
