@@ -43,15 +43,28 @@ export const api = {
 
         if (error) throw error;
 
-        return data.map((row: any) => ({
-            id: row.id,
-            topicId: topicId,
-            userId: row.user_id,
-            userName: 'Ciudadano ' + row.user_id.slice(0, 4),
-            userAvatar: row.profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${row.user_id}`,
-            content: row.content,
-            createdAt: new Date(row.created_at).getTime()
-        }));
+        return data.map((row: any) => {
+            let extractedName = 'Ciudadano ' + row.user_id.slice(0, 4);
+            const avatarUrl = row.profiles?.avatar_url;
+            if (avatarUrl && avatarUrl.includes('seed=')) {
+                try {
+                    const seed = avatarUrl.split('seed=')[1];
+                    extractedName = decodeURIComponent(seed);
+                } catch (e) {
+                    // fallback
+                }
+            }
+
+            return {
+                id: row.id,
+                topicId: topicId,
+                userId: row.user_id,
+                userName: extractedName,
+                userAvatar: avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${row.user_id}`,
+                content: row.content,
+                createdAt: new Date(row.created_at).getTime()
+            };
+        });
     },
 
     async postComment(topicId: string, content: string, userId: string) {
