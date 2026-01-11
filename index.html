@@ -1,56 +1,96 @@
-
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaVozDelPueblo.es - Participación Ciudadana Inteligente</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Google Analytics 4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P4NBXBDES5"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-P4NBXBDES5');
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LaVozDelPueblo.es - Participación Ciudadana Inteligente</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            blob: "blob 7s infinite",
+            "ken-burns": "ken-burns 40s ease-in-out infinite alternate",
+          },
+          keyframes: {
+            blob: {
+              "0%": { transform: "translate(0px, 0px) scale(1)" },
+              "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+              "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+              "100%": { transform: "translate(0px, 0px) scale(1)" },
+            },
+            "ken-burns": {
+              "0%": { transform: "scale(1) translate(0, 0)" },
+              "100%": { transform: "scale(1.15) translate(-3%, -1%)" },
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Plataforma de participación ciudadana e inteligencia colectiva. Debate, vota y decide el futuro de tu región y país de forma transparente.">
-    <meta name="keywords" content="democracia, politica españa, votacion online, participación ciudadana, debates, gobierno abierto">
-    <meta name="author" content="La Voz del Pueblo">
-    <link rel="canonical" href="https://lavozdelpueblo.es/" />
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P4NBXBDES5"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-P4NBXBDES5');
+  </script>
 
-    <!-- Open Graph / Facebook / WhatsApp -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://lavozdelpueblo.es/">
-    <meta property="og:title" content="LaVozDelPueblo.es - Tu Opinión Cuenta">
-    <meta property="og:description" content="Participa en debates reales, vota por regiones y construye el futuro con inteligencia colectiva.">
-    <meta property="og:image" content="https://lavozdelpueblo.es/og-image.jpg">
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="Plataforma de participación ciudadana e inteligencia colectiva. Debate, vota y decide el futuro de tu región y país de forma transparente.">
+  <meta name="keywords"
+    content="democracia, politica españa, votacion online, participación ciudadana, debates, gobierno abierto">
+  <meta name="author" content="La Voz del Pueblo">
+  <link rel="canonical" href="https://lavozdelpueblo.es/" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://lavozdelpueblo.es/">
-    <meta property="twitter:title" content="LaVozDelPueblo.es">
-    <meta property="twitter:description" content="Participa en debates reales, vota por regiones y construye el futuro.">
-    <meta property="twitter:image" content="https://lavozdelpueblo.es/og-image.jpg">
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://lavozdelpueblo.es/">
+  <meta property="og:title" content="LaVozDelPueblo.es - Tu Opinión Cuenta">
+  <meta property="og:description"
+    content="Participa en debates reales, vota por regiones y construye el futuro con inteligencia colectiva.">
+  <meta property="og:image" content="https://lavozdelpueblo.es/og-image.jpg">
 
-    <!-- SDKs de Autenticación -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://lavozdelpueblo.es/">
+  <meta property="twitter:title" content="LaVozDelPueblo.es">
+  <meta property="twitter:description" content="Participa en debates reales, vota por regiones y construye el futuro.">
+  <meta property="twitter:image" content="https://lavozdelpueblo.es/og-image.jpg">
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-        }
-    </style>
+  <!-- SDKs de Autenticación -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-<link rel="stylesheet" href="/index.css">
-<script type="importmap">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+    }
+
+    .animation-delay-2000 {
+      animation-delay: 2s;
+    }
+
+    .animation-delay-4000 {
+      animation-delay: 4s;
+    }
+
+    .animation-delay-6000 {
+      animation-delay: 6s;
+    }
+  </style>
+
+  <link rel="stylesheet" href="/index.css">
+  <script type="importmap">
 {
   "imports": {
     "react/": "https://esm.sh/react@^19.2.3/",
@@ -64,9 +104,11 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-BXowOTg6.js"></script>
+  <script type="module" crossorigin src="/assets/index-Db-qi3eL.js"></script>
 </head>
+
 <body>
-    <div id="root"></div>
+  <div id="root"></div>
 </body>
+
 </html>
