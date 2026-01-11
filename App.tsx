@@ -157,11 +157,37 @@ const App: React.FC = () => {
     const username = sessionUser.user_metadata?.username || sessionUser.email?.split('@')[0] || 'Ciudadano';
 
     // Fetch extended profile data (region)
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from('profiles')
       .select('region, is_fake, avatar_url')
       .eq('id', sessionUser.id)
       .single();
+
+    if (!profile) {
+      // Profile missing? Trigger might have failed. Auto-repair.
+      console.log('Profile missing for user. Attempting auto-repair...');
+      try {
+        const { error: insertError } = await supabase.from('profiles').insert({
+          id: sessionUser.id,
+          region: sessionUser.user_metadata?.region || 'MD',
+          is_fake: false
+        });
+
+        if (!insertError) {
+          // Fetch again
+          const { data: retryProfile } = await supabase
+            .from('profiles')
+            .select('region, is_fake, avatar_url')
+            .eq('id', sessionUser.id)
+            .single();
+          profile = retryProfile;
+        } else {
+          console.error('Auto-repair failed:', insertError);
+        }
+      } catch (e) {
+        console.error('Auto-repair exception:', e);
+      }
+    }
 
     setUser({
       id: sessionUser.id,

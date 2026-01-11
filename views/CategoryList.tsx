@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../src/services/api';
+import { supabase } from '../src/services/supabase';
 
 const CATEGORIES = [
     { id: 'Política', name: 'Política', icon: '⚖️', description: 'Debates sobre gobierno, leyes y derechos.' },
@@ -18,8 +19,22 @@ const CATEGORIES = [
 const CategoryList: React.FC = () => {
     const [userCount, setUserCount] = useState<number | null>(null);
 
-    useEffect(() => {
+    const updateCount = () => {
         api.fetchUserCount().then(count => setUserCount(count));
+    };
+
+    useEffect(() => {
+        updateCount();
+
+        // Listen for auth changes (e.g. sign up) to update count
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                // Small delay to ensure DB trigger has finished
+                setTimeout(updateCount, 1500);
+            }
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     return (
