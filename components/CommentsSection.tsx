@@ -55,7 +55,7 @@ const CommentItem: React.FC<{
                                 )}
                             </div>
                             <span className="text-xs text-gray-500">
-                                {formatDistanceToNow(parseInt(comment.createdAt) || Date.now(), { addSuffix: true, locale: es })}
+                                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
                             </span>
                         </div>
                         <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{comment.content}</p>

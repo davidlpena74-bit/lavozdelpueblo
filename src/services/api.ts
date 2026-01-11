@@ -89,7 +89,7 @@ export const api = {
                 avatar: avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${row.user_id}`,
                 content: row.content,
                 region: row.region,
-                createdAt: new Date(row.created_at).getTime() > 0 ? new Date(row.created_at).toLocaleDateString() : 'Hoy',
+                createdAt: row.created_at, // Return ISO string directly
                 isFake: row.is_fake,
                 upvotes: row.upvotes || 0,
                 downvotes: row.downvotes || 0,
