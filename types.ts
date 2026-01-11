@@ -16,9 +16,15 @@ export interface Comment {
   topicId: string;
   userId: string;
   userName: string;
-  userAvatar: string;
+  avatar: string; // URL to avatar image
   content: string;
-  createdAt: number;
+  region: RegionCode;
+  createdAt: string;
+  isFake?: boolean;
+  replies?: Comment[];
+  upvotes?: number;
+  downvotes?: number;
+  userVote?: 'up' | 'down' | null; // What the current user voted
   isOwn?: boolean; // Helper to know if current user can delete
 }
 

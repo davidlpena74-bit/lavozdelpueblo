@@ -26,28 +26,37 @@ const mapTopic = (row: any): Topic => ({
 export const api = {
     // COMMENTS
     async fetchComments(topicId: string) {
-        const { data, error } = await supabase
-            .from('comments')
-            .select(`
-                id,
-                content,
-                created_at,
-                user_id,
-                profiles:user_id (
-                    region,
-                    avatar_url
-                 )
-            `)
+        // 1. Fetch comments with total votes (public view)
+        const { data: comments, error } = await supabase
+            .from('comments_with_votes')
+            .select('*')
             .eq('topic_id', topicId)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        return data.map((row: any) => {
+        // 2. Fetch current user's votes on these comments (if logged in)
+        const { data: { session } } = await supabase.auth.getSession();
+        let userVotesMap: Record<string, 'up' | 'down'> = {};
+
+        if (session?.user) {
+            const commentIds = comments.map(c => c.id);
+            if (commentIds.length > 0) {
+                const { data: myVotes } = await supabase
+                    .from('comment_votes')
+                    .select('comment_id, vote_type')
+                    .eq('user_id', session.user.id)
+                    .in('comment_id', commentIds);
+
+                myVotes?.forEach((v: any) => {
+                    userVotesMap[v.comment_id] = v.vote_type;
+                });
+            }
+        }
+
+        return comments.map((row: any) => {
             let extractedName = 'Ciudadano ' + row.user_id.slice(0, 4);
-            const profilesData = row.profiles; // Could be object or array depending on PostgREST detection
-            const profile = Array.isArray(profilesData) ? profilesData[0] : profilesData;
-            const avatarUrl = profile?.avatar_url;
+            const avatarUrl = row.avatar_url;
 
             if (avatarUrl && avatarUrl.includes('seed=')) {
                 try {
@@ -83,11 +92,45 @@ export const api = {
                 topicId: topicId,
                 userId: row.user_id,
                 userName: extractedName,
-                userAvatar: avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${row.user_id}`,
+                avatar: avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${row.user_id}`,
                 content: row.content,
-                createdAt: new Date(row.created_at).getTime()
+                region: row.region,
+                createdAt: new Date(row.created_at).getTime() > 0 ? new Date(row.created_at).toLocaleDateString() : 'Hoy',
+                isFake: row.is_fake,
+                upvotes: row.upvotes || 0,
+                downvotes: row.downvotes || 0,
+                userVote: userVotesMap[row.id] || null
             };
         });
+    },
+
+    async voteComment(commentId: string, voteType: 'up' | 'down') {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Must be logged in");
+
+        // Check if vote exists
+        const { data: existingVote } = await supabase
+            .from('comment_votes')
+            .select('*')
+            .eq('comment_id', commentId)
+            .eq('user_id', user.id)
+            .single();
+
+        if (existingVote) {
+            if (existingVote.vote_type === voteType) {
+                // Toggle OFF (delete)
+                await supabase.from('comment_votes').delete().eq('comment_id', commentId).eq('user_id', user.id);
+                return null; // Removed
+            } else {
+                // Update (switch side)
+                await supabase.from('comment_votes').update({ vote_type: voteType }).eq('comment_id', commentId).eq('user_id', user.id);
+                return voteType;
+            }
+        } else {
+            // Insert
+            await supabase.from('comment_votes').insert({ comment_id: commentId, user_id: user.id, vote_type: voteType });
+            return voteType;
+        }
     },
 
     async postComment(topicId: string, content: string, userId: string) {

@@ -53,6 +53,48 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ topicId, user, onRequ
         }
     };
 
+    const handleVote = async (commentId: string, type: 'up' | 'down') => {
+        if (!user) {
+            onRequireAuth();
+            return;
+        }
+
+        // 1. Optimistic Update
+        setComments(currentComments => currentComments.map(c => {
+            if (c.id !== commentId) return c;
+
+            const oldVote = c.userVote;
+            let newUpvotes = c.upvotes || 0;
+            let newDownvotes = c.downvotes || 0;
+
+            // Remove old vote stats
+            if (oldVote === 'up') newUpvotes--;
+            if (oldVote === 'down') newDownvotes--;
+
+            // Add new vote stats (if not toggling off)
+            const newVote = (oldVote === type) ? null : type; // Toggle logic
+
+            if (newVote === 'up') newUpvotes++;
+            if (newVote === 'down') newDownvotes++;
+
+            return {
+                ...c,
+                userVote: newVote,
+                upvotes: newUpvotes,
+                downvotes: newDownvotes
+            };
+        }));
+
+        // 2. API Call
+        try {
+            await api.voteComment(commentId, type);
+        } catch (err) {
+            console.error(err);
+            // Revert on error? Ideally yes, but keeping it simple for now.
+            loadComments();
+        }
+    };
+
     return (
         <div className="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm">
             <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -109,17 +151,40 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ topicId, user, onRequ
                     comments.map((comment) => (
                         <div key={comment.id} className="flex gap-4 group">
                             <div className="flex-shrink-0">
-                                <img src={comment.userAvatar} className="w-10 h-10 rounded-full border border-gray-100 shadow-sm" alt={comment.userName} />
+                                <img src={comment.avatar} className="w-10 h-10 rounded-full border border-gray-100 shadow-sm" alt={comment.userName} />
                             </div>
                             <div className="flex-grow">
                                 <div className="bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100 group-hover:border-indigo-100 transition-colors">
                                     <div className="flex justify-between items-baseline mb-2">
-                                        <span className="font-bold text-gray-900 text-sm">{comment.userName}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-gray-900 text-sm">{comment.userName}</span>
+                                            {comment.region && (
+                                                <span className="text-[10px] text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded-full">{comment.region}</span>
+                                            )}
+                                        </div>
                                         <span className="text-xs text-gray-500">
-                                            {formatDistanceToNow(comment.createdAt, { addSuffix: true, locale: es })}
+                                            {formatDistanceToNow(parseInt(comment.createdAt) || Date.now(), { addSuffix: true, locale: es })}
                                         </span>
                                     </div>
                                     <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{comment.content}</p>
+
+                                    {/* Action Bar */}
+                                    <div className="flex items-center mt-3 gap-4">
+                                        <button
+                                            onClick={() => handleVote(comment.id, 'up')}
+                                            className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${comment.userVote === 'up' ? 'text-green-600' : 'text-gray-400 hover:text-green-500'}`}
+                                        >
+                                            <svg className="w-4 h-4" fill={comment.userVote === 'up' ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                                            {comment.upvotes || 0}
+                                        </button>
+                                        <button
+                                            onClick={() => handleVote(comment.id, 'down')}
+                                            className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${comment.userVote === 'down' ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                                        >
+                                            <svg className="w-4 h-4" fill={comment.userVote === 'down' ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" /></svg>
+                                            {comment.downvotes || 0}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
