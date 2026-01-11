@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Topic, RegionCode } from '../types';
 import VoteChart from '../components/VoteChart';
 import SpainMap from '../components/SpainMap';
@@ -54,6 +55,20 @@ const TopicPage: React.FC<TopicPageProps> = ({ topics, onVote, user, onRequireAu
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <Helmet>
+        <title>{topic.title} - La Voz del Pueblo</title>
+        <meta name="description" content={topic.description} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:title" content={`${topic.title} - Debate y Vota`} />
+        <meta property="og:description" content={topic.description} />
+        <meta property="og:url" content={`https://lavozdelpueblo.es/#/topic/${topic.id}`} />
+
+        {/* Twitter */}
+        <meta name="twitter:title" content={topic.title} />
+        <meta name="twitter:description" content={topic.description} />
+      </Helmet>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Left Column: Topic Description & Voting */}
         <div className="lg:col-span-2 space-y-8">
