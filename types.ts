@@ -22,6 +22,7 @@ export interface Comment {
   createdAt: string;
   isFake?: boolean;
   replies?: Comment[];
+  parentId?: string; // Reference to parent
   upvotes?: number;
   downvotes?: number;
   userVote?: 'up' | 'down' | null; // What the current user voted

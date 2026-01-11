@@ -54,7 +54,8 @@ export const api = {
             }
         }
 
-        return comments.map((row: any) => {
+        // 3. Transform to application objects and build Tree structure
+        const rawList = comments.map((row: any) => {
             let extractedName = 'Ciudadano ' + row.user_id.slice(0, 4);
             const avatarUrl = row.avatar_url;
 
@@ -63,28 +64,21 @@ export const api = {
                     const seed = avatarUrl.split('seed=')[1];
                     const fullName = decodeURIComponent(seed).replace(/\+/g, ' ');
 
-                    // Transform "Teresa Garcia Torres" -> "TeresaGT_88"
                     const parts = fullName.split(' ');
                     if (parts.length > 0) {
                         const firstName = parts[0];
                         let suffix = '';
                         if (parts.length > 1) {
-                            // Take initials of surnames
                             suffix = parts.slice(1).map(p => p[0]).join('').toUpperCase();
                         }
-
-                        // Generate a deterministic number from user_id (0-99)
                         let hash = 0;
                         for (let i = 0; i < row.user_id.length; i++) {
                             hash = row.user_id.charCodeAt(i) + ((hash << 5) - hash);
                         }
                         const num = Math.abs(hash % 100);
-
                         extractedName = `${firstName}${suffix}_${num}`;
                     }
-                } catch (e) {
-                    // fallback
-                }
+                } catch (e) { }
             }
 
             return {
@@ -99,9 +93,45 @@ export const api = {
                 isFake: row.is_fake,
                 upvotes: row.upvotes || 0,
                 downvotes: row.downvotes || 0,
-                userVote: userVotesMap[row.id] || null
-            };
+                userVote: userVotesMap[row.id] || null,
+                parentId: row.parent_id,
+                replies: []
+            } as Comment;
         });
+
+        // Build Tree
+        const commentMap: Record<string, Comment> = {};
+        rawList.forEach(c => commentMap[c.id] = c);
+
+        const rootComments: Comment[] = [];
+        rawList.forEach(c => {
+            if (c.parentId && commentMap[c.parentId]) {
+                commentMap[c.parentId].replies?.push(c);
+            } else {
+                rootComments.push(c);
+            }
+        });
+
+        // Sort roots (newest first)
+        rootComments.sort((a, b) => {
+            // Parse dates back to sort?? Or just trust DB order.
+            // Since we use 'Today' string... we better use original DB sort which is DESC.
+            // But replies usually are ASC (oldest first).
+            return 0; // Keeping DB order
+        });
+
+        // Sort replies (Usually Oldest First for conversation flow)
+        const sortReplies = (list: Comment[]) => {
+            list.sort((a, b) => a.id.localeCompare(b.id)); // Simple sort by ID (approx time) or keep DB order
+            list.forEach(c => {
+                if (c.replies && c.replies.length > 0) sortReplies(c.replies);
+            });
+        };
+        rootComments.forEach(c => {
+            if (c.replies) c.replies.reverse(); // DB gave us DESC. Replies usually want ASC (Oldest on top).
+        });
+
+        return rootComments;
     },
 
     async voteComment(commentId: string, voteType: 'up' | 'down') {
@@ -133,13 +163,14 @@ export const api = {
         }
     },
 
-    async postComment(topicId: string, content: string, userId: string) {
+    async postComment(topicId: string, content: string, userId: string, parentId?: string) {
         const { data, error } = await supabase
             .from('comments')
             .insert({
                 topic_id: topicId,
                 user_id: userId,
-                content: content
+                content: content,
+                parent_id: parentId // Optional
             })
             .select()
             .single();
