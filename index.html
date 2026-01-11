@@ -10,21 +10,37 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P4NBXBDES5"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-P4NBXBDES5');
+    </script>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Plataforma de participación ciudadana e inteligencia colectiva. Debate, vota y decide el futuro de tu región y país de forma transparente.">
+    <meta name="keywords" content="democracia, politica españa, votacion online, participación ciudadana, debates, gobierno abierto">
+    <meta name="author" content="La Voz del Pueblo">
+    <link rel="canonical" href="https://lavozdelpueblo.es/" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lavozdelpueblo.es/">
+    <meta property="og:title" content="LaVozDelPueblo.es - Tu Opinión Cuenta">
+    <meta property="og:description" content="Participa en debates reales, vota por regiones y construye el futuro con inteligencia colectiva.">
+    <meta property="og:image" content="https://lavozdelpueblo.es/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://lavozdelpueblo.es/">
+    <meta property="twitter:title" content="LaVozDelPueblo.es">
+    <meta property="twitter:description" content="Participa en debates reales, vota por regiones y construye el futuro.">
+    <meta property="twitter:image" content="https://lavozdelpueblo.es/og-image.jpg">
+
     <!-- SDKs de Autenticación -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script>
-      // Inicialización temprana de Facebook para evitar error "called before init"
-      window.fbAsyncInit = function() {
-        FB.init({
-          appId      : 'TU_FACEBOOK_APP_ID', // REEMPLAZAR CON ID REAL
-          cookie     : true,
-          xfbml      : true,
-          version    : 'v18.0'
-        });
-        window.FB_READY = true;
-      };
-    </script>
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/es_ES/sdk.js"></script>
 
     <style>
         body {
