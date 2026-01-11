@@ -45,11 +45,34 @@ export const api = {
 
         return data.map((row: any) => {
             let extractedName = 'Ciudadano ' + row.user_id.slice(0, 4);
-            const avatarUrl = row.profiles?.avatar_url;
+            const profilesData = row.profiles; // Could be object or array depending on PostgREST detection
+            const profile = Array.isArray(profilesData) ? profilesData[0] : profilesData;
+            const avatarUrl = profile?.avatar_url;
+
             if (avatarUrl && avatarUrl.includes('seed=')) {
                 try {
                     const seed = avatarUrl.split('seed=')[1];
-                    extractedName = decodeURIComponent(seed);
+                    const fullName = decodeURIComponent(seed).replace(/\+/g, ' ');
+
+                    // Transform "Teresa Garcia Torres" -> "TeresaGT_88"
+                    const parts = fullName.split(' ');
+                    if (parts.length > 0) {
+                        const firstName = parts[0];
+                        let suffix = '';
+                        if (parts.length > 1) {
+                            // Take initials of surnames
+                            suffix = parts.slice(1).map(p => p[0]).join('').toUpperCase();
+                        }
+
+                        // Generate a deterministic number from user_id (0-99)
+                        let hash = 0;
+                        for (let i = 0; i < row.user_id.length; i++) {
+                            hash = row.user_id.charCodeAt(i) + ((hash << 5) - hash);
+                        }
+                        const num = Math.abs(hash % 100);
+
+                        extractedName = `${firstName}${suffix}_${num}`;
+                    }
                 } catch (e) {
                     // fallback
                 }
