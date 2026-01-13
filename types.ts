@@ -29,7 +29,8 @@ export interface Comment {
   isOwn?: boolean; // Helper to know if current user can delete
 }
 
-export interface Topic {
+// Base properties common to all topics
+interface BaseTopic {
   id: string;
   title: string;
   category: string;
@@ -40,14 +41,40 @@ export interface Topic {
     oppose: number;
     neutral: number;
   };
-  regionalVotes: RegionalVotes;
+  regionalVotes: Record<string, { support: number; oppose: number; neutral: number }>; // Typed as string key to allow partial
   pros: string[];
   cons: string[];
-  aiAnalysis?: string;
+  aiAnalysis: string;
   hasVoted?: boolean;
+}
+
+// 1. Binary Topic (Yes/No/Neutral)
+export interface BinaryTopic extends BaseTopic {
+  type: 'binary';
   labelSupport?: string;
   labelOppose?: string;
+  userVoteOption?: 'support' | 'oppose' | 'neutral' | null;
+
+  // Explicitly disallow multi-option fields to strictly separate types
+  options?: never;
+  optionCounts?: never;
+  regionalOptionCounts?: never;
 }
+
+// 2. Multiple Choice Topic (Parties, Options, etc.)
+export interface MultipleChoiceTopic extends BaseTopic {
+  type: 'multiple_choice';
+  options: string[];
+  optionCounts: Record<string, number>;
+  regionalOptionCounts: Record<string, Record<string, number>>; // Region -> Option -> Count
+  userVoteOption?: string | null;
+
+  labelSupport?: never;
+  labelOppose?: never;
+}
+
+// Discriminated Union
+export type Topic = BinaryTopic | MultipleChoiceTopic;
 
 export interface VoteRecord {
   topicId: string;

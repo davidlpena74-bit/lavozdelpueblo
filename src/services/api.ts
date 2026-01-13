@@ -3,25 +3,59 @@ import { supabase } from './supabase';
 import { Topic, RegionCode, OccupationType, GenderType, Comment } from '../../types';
 
 // Map database row to app Topic type
-const mapTopic = (row: any): Topic => ({
-    id: row.id,
-    title: row.title,
-    category: row.category,
-    description: row.description,
-    createdAt: new Date(row.created_at).getTime(),
-    votes: {
-        support: row.support_count || 0,
-        oppose: row.oppose_count || 0,
-        neutral: row.neutral_count || 0,
-    },
-    regionalVotes: row.regionalVotes || {},
-    pros: row.pros || [],
-    cons: row.cons || [],
-    aiAnalysis: row.ai_analysis,
-    hasVoted: row.hasVoted, // from view matches strict alias
-    labelSupport: row.label_support,
-    labelOppose: row.label_oppose
-});
+const mapTopic = (row: any): Topic => {
+    // FIX & PATCH: Ensure we handle the updated schema
+    let forcedType = row.type;
+    let forcedOptions = row.options;
+
+    // Emergency fallback if DB view is stale but we need to show the poll
+    if (row.title.includes('Qué partido') || row.title.includes('partido político')) {
+        if (!forcedType || forcedType === 'binary') {
+            forcedType = 'multiple_choice';
+            if (!forcedOptions || forcedOptions.length === 0) {
+                forcedOptions = ['PSOE', 'PP', 'Vox', 'Sumar', 'Podemos', 'Junts', 'ERC', 'PNV', 'Bildu', 'SALF (Alvise)', 'PACMA', 'Otros / Blanco'];
+            }
+        }
+    }
+
+    const baseTopic = {
+        id: row.id,
+        title: row.title,
+        category: row.category,
+        description: row.description,
+        createdAt: new Date(row.created_at).getTime(),
+        votes: {
+            support: row.support_count || 0,
+            oppose: row.oppose_count || 0,
+            neutral: row.neutral_count || 0,
+        },
+        pros: row.pros || [],
+        cons: row.cons || [],
+        aiAnalysis: row.ai_analysis,
+        hasVoted: row.hasVoted,
+        regionalVotes: row.regionalVotes || {} // Common field now
+    };
+
+    if (forcedType === 'multiple_choice') {
+        return {
+            ...baseTopic,
+            type: 'multiple_choice',
+            options: forcedOptions || [],
+            optionCounts: row.option_counts || {},
+            regionalOptionCounts: row.regional_options || {},
+            userVoteOption: null, // String
+        };
+    }
+
+    // Default Binary
+    return {
+        ...baseTopic,
+        type: 'binary',
+        labelSupport: row.label_support,
+        labelOppose: row.label_oppose,
+        userVoteOption: null, // 'support'|'oppose'|'neutral'
+    };
+};
 
 export const api = {
     // COMMENTS
@@ -181,10 +215,11 @@ export const api = {
 
     // TOPICS
     // Fetch all topics with stats, optionally filtered by category
+    // Force selection of new columns to bypass potential stale schema cache
     async fetchTopics(category?: string) {
         let query = supabase
             .from('topics_with_stats')
-            .select('*')
+            .select('*, regional_options, option_counts, options, type')
             .order('created_at', { ascending: false });
 
         if (category) {
@@ -209,7 +244,9 @@ export const api = {
                 cons: topic.cons,
                 ai_analysis: topic.aiAnalysis,
                 label_support: topic.labelSupport,
-                label_oppose: topic.labelOppose
+                label_oppose: topic.labelOppose,
+                type: topic.type || 'binary',
+                options: topic.options || []
             })
             .select()
             .single();
@@ -219,7 +256,7 @@ export const api = {
     },
 
     // Cast a vote
-    async castVote(topicId: string, choice: 'support' | 'oppose' | 'neutral', region: RegionCode) {
+    async castVote(topicId: string, choice: 'support' | 'oppose' | 'neutral', region: RegionCode, choiceOption?: string) {
         // ... (existing code)
         // 2. Insert vote
         const { error } = await supabase
@@ -227,7 +264,8 @@ export const api = {
             .insert({
                 topic_id: topicId,
                 choice,
-                region
+                region,
+                choice_option: choiceOption
             });
 
         if (error) {

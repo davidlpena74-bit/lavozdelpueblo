@@ -15,47 +15,6 @@ import CategoryDashboard from './views/CategoryDashboard';
 import Terms from './views/Terms';
 import Privacy from './views/Privacy';
 
-const REGIONS: RegionCode[] = ['AN', 'AR', 'AS', 'IB', 'CN', 'CB', 'CM', 'CL', 'CT', 'VC', 'EX', 'GA', 'MD', 'MC', 'NC', 'PV', 'RI', 'CE', 'ML'];
-
-const generateMockRegionalVotes = () => {
-  const votes: any = {};
-  REGIONS.forEach(region => {
-    votes[region] = {
-      support: Math.floor(Math.random() * 100),
-      oppose: Math.floor(Math.random() * 100),
-      neutral: Math.floor(Math.random() * 20),
-    };
-  });
-  return votes;
-};
-
-const INITIAL_TOPICS: Topic[] = [
-  {
-    id: '1',
-    title: 'Renta Básica Universal (RBU)',
-    category: 'Economía',
-    description: 'Un pago en efectivo periódico entregado a todos de forma individual, sin prueba de recursos ni requisito de trabajo.',
-    createdAt: Date.now() - 86400000 * 5,
-    votes: { support: 450, oppose: 320, neutral: 120 },
-    regionalVotes: generateMockRegionalVotes(),
-    pros: ['Reduce la pobreza', 'Proporciona seguridad ante la automatización', 'Apoya el trabajo no remunerado como los cuidados'],
-    cons: ['Potencialmente inflacionario', 'Reducción del incentivo para trabajar', 'Enorme coste fiscal'],
-    aiAnalysis: 'El debate se centra en el equilibrio entre la seguridad económica y la participación en la fuerza laboral.'
-  },
-  {
-    id: '2',
-    title: 'Impuesto al Carbono Estricto',
-    category: 'Medio Ambiente',
-    description: 'Propuesta de un impuesto obligatorio sobre las emisiones de carbono para los principales actores industriales para combatir el cambio climático.',
-    createdAt: Date.now() - 86400000 * 2,
-    votes: { support: 890, oppose: 450, neutral: 80 },
-    regionalVotes: generateMockRegionalVotes(),
-    pros: ['Incentiva la energía verde', 'Internaliza los costes ambientales', 'Los ingresos pueden financiar proyectos renovables'],
-    cons: ['Aumento de costes para los consumidores', 'Puede dañar la competitividad industrial', 'Difícil de implementar globalmente'],
-    aiAnalysis: 'Los economistas generalmente apoyan esto como una solución eficiente basada en el mercado, pero la viabilidad política sigue siendo baja debido a las preocupaciones sobre el coste.'
-  }
-];
-
 const Navigation: React.FC<{ user: any; onLogin: () => void; onLogout: () => void }> = ({ user, onLogin, onLogout }) => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
@@ -108,14 +67,12 @@ const Navigation: React.FC<{ user: any; onLogin: () => void; onLogout: () => voi
   );
 };
 
+
 const App: React.FC = () => {
-  const [topics, setTopics] = useState<Topic[]>([]); // Start empty, let API fill it
+  const [topics, setTopics] = useState<Topic[]>([]);
 
   const [user, setUser] = useState<{ id: string; name: string; avatar: string; email: string; region?: string; is_fake?: boolean } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-
-
 
   const loadTopics = async () => {
     try {
@@ -128,7 +85,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     loadTopics();
-  }, [user]); // Reload when user changes to update 'hasVoted' status
+  }, [user]);
+
   useEffect(() => {
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -183,9 +141,16 @@ const App: React.FC = () => {
           profile = retryProfile;
         } else {
           console.error('Auto-repair failed:', insertError);
+          // CRITICAL: If we can't create a profile, logout to avoid broken state
+          await supabase.auth.signOut();
+          setUser(null);
+          return;
         }
       } catch (e) {
         console.error('Auto-repair exception:', e);
+        await supabase.auth.signOut();
+        setUser(null);
+        return;
       }
     }
 
@@ -194,7 +159,7 @@ const App: React.FC = () => {
       name: username,
       email: sessionUser.email || '',
       avatar: profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-      region: profile?.region || sessionUser.user_metadata?.region, // Fallback to metadata if DB fetch fails or is pending
+      region: profile?.region || sessionUser.user_metadata?.region,
       is_fake: profile?.is_fake
     });
   };
@@ -202,22 +167,21 @@ const App: React.FC = () => {
   const handleAddTopic = async (newTopic: Topic) => {
     try {
       await api.createTopic(newTopic);
-      await loadTopics(); // Refresh list
-      // Note: In a real app we might optimistically update or just append the returned data
+      await loadTopics();
     } catch (e: any) {
       alert('Error creating topic: ' + e.message);
     }
   };
 
-  const handleVote = async (topicId: string, choice: 'support' | 'oppose' | 'neutral', region: RegionCode) => {
+  const handleVote = async (topicId: string, choice: 'support' | 'oppose' | 'neutral', region: RegionCode, choiceOption?: string) => {
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
 
     try {
-      await api.castVote(topicId, choice, region);
-      await loadTopics(); // Refresh to catch new stats
+      await api.castVote(topicId, choice, region, choiceOption);
+      await loadTopics();
     } catch (e: any) {
       alert(e.message);
     }
@@ -225,7 +189,8 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
+
         <Navigation
           user={user}
           onLogin={() => setIsAuthModalOpen(true)}
@@ -257,7 +222,7 @@ const App: React.FC = () => {
           onClose={() => setIsAuthModalOpen(false)}
         />
 
-        <footer className="bg-white border-t border-gray-200 py-12 mt-12">
+        <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 py-12 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
             <p>&copy; 2026 LaVozDelPueblo.es. Todos los derechos reservados.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
